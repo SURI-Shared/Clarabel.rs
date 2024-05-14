@@ -11,6 +11,7 @@ use crate::solver::{
     },
     implementations::default::*,
 };
+use crate::algebra::VectorMath;
 use num_derive::ToPrimitive;
 use num_traits::ToPrimitive;
 use pyo3::prelude::*;
@@ -393,6 +394,29 @@ impl PyDefaultSolver {
 
     fn solve(&mut self) -> PyDefaultSolution {
         self.inner.solve();
+        PyDefaultSolution::new_from_internal(&self.inner.solution)
+    }
+
+    fn solve_warm(&mut self,xguess: Option<Vec<f64>>,sguess: Option<Vec<f64>>,zguess: Option<Vec<f64>>) -> PyDefaultSolution {
+        if xguess.is_some() && sguess.is_some() && zguess.is_some(){
+            let xguess=xguess.unwrap();
+            let sguess=sguess.unwrap();
+            let zguess=zguess.unwrap();
+            let mut guess=DefaultVariables::<f64>::new(xguess.len(),sguess.len());
+            //TODO: the guess is copied here, AND inside of IPSolverInternals::warm_start
+            let gx=&mut guess.x;
+            let gs=&mut guess.s;
+            let gz=&mut guess.z;
+            gx.copy_from(&xguess);
+            gs.copy_from(&sguess);
+            gz.copy_from(&zguess);
+            // VectorMath::<T=f64>::copy_from(&guess.x,xguess);
+            // VectorMath::<T=f64>::copy_from(&guess.s,sguess);
+            // VectorMath::<T=f64>::copy_from(&guess.z,zguess);
+            self.inner.solve_warm(&Some(&guess));
+        }else {
+            self.inner.solve();
+        }
         PyDefaultSolution::new_from_internal(&self.inner.solution)
     }
 
