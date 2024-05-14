@@ -102,6 +102,7 @@ pub enum PySolverStatus {
     AlmostDualInfeasible,
     MaxIterations,
     MaxTime,
+    ScalingError,
     NumericalError,
     InsufficientProgress,
 }
@@ -118,6 +119,7 @@ impl PySolverStatus {
             SolverStatus::AlmostDualInfeasible => PySolverStatus::AlmostDualInfeasible,
             SolverStatus::MaxIterations => PySolverStatus::MaxIterations,
             SolverStatus::MaxTime => PySolverStatus::MaxTime,
+            SolverStatus::ScalingError => PySolverStatus::ScalingError,
             SolverStatus::NumericalError => PySolverStatus::NumericalError,
             SolverStatus::InsufficientProgress => PySolverStatus::InsufficientProgress,
         }
@@ -137,6 +139,7 @@ impl PySolverStatus {
             PySolverStatus::AlmostDualInfeasible => "AlmostDualInfeasible",
             PySolverStatus::MaxIterations => "MaxIterations",
             PySolverStatus::MaxTime => "MaxTime",
+            PySolverStatus::ScalingError => "ScalingError",
             PySolverStatus::NumericalError => "NumericalError",
             PySolverStatus::InsufficientProgress => "InsufficientProgress",
         }

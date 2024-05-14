@@ -35,6 +35,8 @@ pub enum SolverStatus {
     MaxTime,
     /// Solver terminated with a numerical error
     NumericalError,
+    /// Solver terminated with a numerical error in Scaling
+    ScalingError,
     /// Solver terminated due to lack of progress.
     InsufficientProgress,
 }
@@ -53,7 +55,7 @@ impl SolverStatus {
         // status is any of the error codes
         matches!(
             *self,
-            SolverStatus::NumericalError | SolverStatus::InsufficientProgress
+            SolverStatus::NumericalError | SolverStatus::ScalingError |SolverStatus::InsufficientProgress
         )
     }
 }
@@ -607,7 +609,7 @@ mod internal {
             if is_scaling_success {
                 StrategyCheckpoint::NoUpdate
             } else {
-                self.info.set_status(SolverStatus::NumericalError);
+                self.info.set_status(SolverStatus::ScalingError);
                 StrategyCheckpoint::Fail
             }
         }
