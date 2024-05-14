@@ -164,6 +164,7 @@ fn _print_banner(is_verbose: bool) -> std::io::Result<()> {
 pub trait IPSolver<T, D, V, R, K, C, I, SO, SE> {
     /// Run the solver
     fn solve(&mut self);
+    fn solve_warm(&mut self,guess:&Option<&V>);
 }
 
 impl<T, D, V, R, K, C, I, SO, SE> IPSolver<T, D, V, R, K, C, I, SO, SE>
@@ -179,7 +180,10 @@ where
     SO: Solution<T, D = D, V = V, I = I>,
     SE: Settings<T>,
 {
-    fn solve(&mut self) {
+    fn solve(&mut self){
+        self.solve_warm(&None)
+    }
+    fn solve_warm(&mut self,guess:&Option<&V>) {
         // various initializations
         let mut iter: u32 = 0;
         let mut σ = T::one();
@@ -204,8 +208,8 @@ where
         timeit! {timers => "solve"; {
 
         // initialize variables to some reasonable starting point
-        timeit!{timers => "default start"; {
-            self.default_start();
+        timeit!{timers => "initialization"; {
+            self.attempt_warm_start(guess);
         }}
 
         timeit!{timers => "IP iteration"; {
@@ -399,6 +403,17 @@ mod internal {
         /// Find an initial condition
         fn default_start(&mut self);
 
+        /// Use a warm start if provided
+        fn attempt_warm_start(&mut self,guess:&Option<&V>){
+            if guess.is_some(){
+                self.warm_start(guess.unwrap());
+            }else{
+                self.default_start();
+            }
+        }
+
+        fn warm_start(&mut self,guess:&V);
+
         /// Compute a centering parameter
         fn centering_parameter(&self, α: T) -> T;
 
@@ -463,6 +478,14 @@ mod internal {
                 // Assigns unit (z,s) and zeros the primal variables
                 self.variables.unit_initialization(&self.cones);
             }
+        }
+        fn warm_start(&mut self,guess:&V) {
+            if self.cones.is_symmetric() {
+                // set all scalings to identity (or zero for the zero cone)
+                self.cones.set_identity_scaling();
+            }
+            // Assign variables
+            self.variables.copy_from(guess);
         }
 
         fn centering_parameter(&self, α: T) -> T {
