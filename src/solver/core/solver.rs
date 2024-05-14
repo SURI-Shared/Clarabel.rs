@@ -482,12 +482,15 @@ mod internal {
             }
         }
         fn warm_start(&mut self,guess:&V) {
+            // Assign variables
+            self.variables.copy_from(guess);
             if self.cones.is_symmetric() {
                 // set all scalings to identity (or zero for the zero cone)
                 self.cones.set_identity_scaling();
+                // fix up (z,s) so that they are in the cone
+                self.variables.symmetric_initialization(&mut self.cones);
             }
-            // Assign variables
-            self.variables.copy_from(guess);
+
         }
 
         fn centering_parameter(&self, α: T) -> T {
