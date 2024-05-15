@@ -395,6 +395,10 @@ impl PyDefaultSolver {
         Self { inner: solver }
     }
 
+    fn update_b(&mut self,b:Vec<f64>)->bool{
+        self.inner.update_b(&b).is_ok()
+    }
+
     fn solve(&mut self) -> PyDefaultSolution {
         self.inner.solve();
         PyDefaultSolution::new_from_internal(&self.inner.solution)
