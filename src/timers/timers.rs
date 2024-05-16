@@ -100,6 +100,21 @@ impl SubTimersMap {
             .fold(Duration::ZERO, |acc, t| acc + t.elapsed())
     }
 
+    pub fn elapsed(&self, depth: u8) ->HashMap<&'static str,Duration>{
+        let mut out=HashMap::<&'static str,Duration>::new();
+        for (key, val) in self.iter() {
+            out.insert(key, val.elapsed);
+            val.subtimers.elapsed_recurse(depth+1, &mut out);
+        }
+        return out
+    }
+    pub fn elapsed_recurse(&self,depth:u8,out: &mut HashMap<&'static str,Duration>){
+        for (key, val) in self.iter() {
+            out.insert(key, val.elapsed);
+            val.subtimers.elapsed_recurse(depth+1,out);
+        }
+    }
+
     pub fn print(&self, depth: u8) {
         for (key, val) in self.iter() {
             let tabs = format!("{: <1$}", "", 4 * depth as usize);
@@ -175,6 +190,15 @@ impl Timers {
 
     pub fn total_time(&self) -> Duration {
         self.subtimers.total_time()
+    }
+
+    pub fn elapsed(&self) ->HashMap<&'static str,f64>{
+        let durations=self.subtimers.elapsed(0);
+        let mut out=HashMap::<&str,f64>::new();
+        for(key,dur) in durations.iter(){
+            out.insert(key, dur.as_secs_f64());
+        }
+        return out
     }
 
     pub fn print(&self) {

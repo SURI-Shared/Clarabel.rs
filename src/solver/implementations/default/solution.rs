@@ -4,7 +4,7 @@ use crate::{
     solver::core::{traits::Solution, SolverStatus},
 };
 use itertools::izip;
-use std::iter::zip;
+use std::{collections::HashMap, iter::zip};
 
 /// Standard-form solver type implementing the [`Solution`](crate::solver::core::traits::Solution) trait
 
@@ -16,6 +16,7 @@ pub struct DefaultSolution<T> {
     pub obj_val: T,
     pub obj_val_dual: T,
     pub solve_time: f64,
+    pub timings: HashMap<&'static str,f64>,
     pub iterations: u32,
     pub r_prim: T,
     pub r_dual: T,
@@ -38,6 +39,7 @@ where
             obj_val: T::nan(),
             obj_val_dual: T::nan(),
             solve_time: 0f64,
+            timings: HashMap::<&str,f64>::new(),
             iterations: 0,
             r_prim: T::nan(),
             r_dual: T::nan(),
@@ -115,6 +117,7 @@ where
 
         self.iterations = info.iterations;
         self.solve_time = info.solve_time;
+        self.timings.clone_from( &info.timings);
         self.r_prim = info.res_primal;
         self.r_dual = info.res_dual;
     }

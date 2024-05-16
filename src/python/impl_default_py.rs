@@ -3,6 +3,7 @@
 
 #![allow(non_snake_case)]
 
+use std::collections::HashMap;
 use super::*;
 use crate::solver::{
     core::{
@@ -51,6 +52,8 @@ pub struct PyDefaultSolution {
     #[pyo3(get)]
     pub solve_time: f64,
     #[pyo3(get)]
+    pub timings: HashMap<&'static str,f64>,
+    #[pyo3(get)]
     pub iterations: u32,
     #[pyo3(get)]
     pub r_prim: f64,
@@ -73,6 +76,7 @@ impl PyDefaultSolution {
             status,
             solve_time: result.solve_time,
             iterations: result.iterations,
+            timings: result.timings.clone(),
             r_prim: result.r_prim,
             r_dual: result.r_dual,
         }

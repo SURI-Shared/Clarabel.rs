@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::*;
 use crate::algebra::*;
 use crate::solver::core::{traits::Info, SolverStatus};
@@ -32,6 +34,7 @@ pub struct DefaultInfo<T> {
     prev_gap_rel: T,
 
     pub solve_time: f64,
+    pub timings: HashMap<&'static str,f64>,
     pub status: SolverStatus,
 }
 
@@ -74,8 +77,8 @@ where
         {
             self.check_convergence_almost(residuals, settings);
         }
-
         self.solve_time = timers.total_time().as_secs_f64();
+        self.timings = timers.elapsed()
     }
 
     fn update(
