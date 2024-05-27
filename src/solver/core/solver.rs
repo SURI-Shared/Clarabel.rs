@@ -166,7 +166,7 @@ fn _print_banner(is_verbose: bool) -> std::io::Result<()> {
 pub trait IPSolver<T, D, V, R, K, C, I, SO, SE> {
     /// Run the solver
     fn solve(&mut self);
-    fn solve_warm(&mut self,guess:&Option<&V>);
+    fn solve_warm(&mut self,guess:&Option<&V>,mode:&Option<i32>,lambda:&Option<T>);
 }
 
 impl<T, D, V, R, K, C, I, SO, SE> IPSolver<T, D, V, R, K, C, I, SO, SE>
@@ -183,9 +183,9 @@ where
     SE: Settings<T>,
 {
     fn solve(&mut self){
-        self.solve_warm(&None)
+        self.solve_warm(&None,&None,&None)
     }
-    fn solve_warm(&mut self,guess:&Option<&V>) {
+    fn solve_warm(&mut self,guess:&Option<&V>,mode:&Option<i32>,lambda:&Option<T>) {
         // various initializations
         let mut iter: u32 = 0;
         let mut σ = T::one();
@@ -211,7 +211,7 @@ where
 
         // initialize variables to some reasonable starting point
         timeit!{timers => "initialization"; {
-            self.attempt_warm_start(guess);
+            self.attempt_warm_start(guess,mode,lambda);
         }}
 
         timeit!{timers => "IP iteration"; {
@@ -224,13 +224,16 @@ where
             if self.cones.allows_primal_dual_scaling() {ScalingStrategy::PrimalDual}
             else {ScalingStrategy::Dual}
         };
-
+        let mut first=true;
         loop {
 
             //update the residuals
             //--------------
             self.residuals.update(&self.variables, &self.data);
-
+            if first {
+                self.variables.print_quality(&self.residuals,&self.cones);
+                first=false;
+            }
             //calculate duality gap (scaled)
             //--------------
             μ = self.variables.calc_mu(&self.residuals, &self.cones);
@@ -406,15 +409,15 @@ mod internal {
         fn default_start(&mut self);
 
         /// Use a warm start if provided
-        fn attempt_warm_start(&mut self,guess:&Option<&V>){
+        fn attempt_warm_start(&mut self,guess:&Option<&V>,mode:&Option<i32>,lambda:&Option<T>){
             if guess.is_some(){
-                self.warm_start(guess.unwrap());
+                self.warm_start(guess.unwrap(),mode,lambda);
             }else{
                 self.default_start();
             }
         }
 
-        fn warm_start(&mut self,guess:&V);
+        fn warm_start(&mut self,guess:&V,mode:&Option<i32>,lambda:&Option<T>);
 
         /// Compute a centering parameter
         fn centering_parameter(&self, α: T) -> T;
@@ -481,14 +484,34 @@ mod internal {
                 self.variables.unit_initialization(&self.cones);
             }
         }
-        fn warm_start(&mut self,guess:&V) {
+        fn warm_start(&mut self,guess:&V,mode:&Option<i32>,lambda:&Option<T>) {
             // Assign variables
-            self.variables.copy_from(guess);
-            if self.cones.is_symmetric() {
-                // set all scalings to identity (or zero for the zero cone)
-                self.cones.set_identity_scaling();
-                // fix up (z,s) so that they are in the cone
-                self.variables.symmetric_initialization(&mut self.cones);
+            let mode=mode.unwrap_or(0);
+            if mode==3{//Initialize as convex combination of the unit initialization and the guess, as in Skajaa 2013, then update tau and kappa
+                self.variables.skajaa_initialization(&self.cones, guess, lambda);
+                self.variables.initialize_embedding_variables();
+            }
+            else if mode==2{//Initialize as convex combination of the unit initialization and the guess, as in Skajaa 2013
+                self.variables.skajaa_initialization(&self.cones, guess, lambda);
+            }
+            else if mode==1{//copy the initial guess, but also update tau and kappa rather than leaving them as 1
+                self.variables.copy_from(guess);
+                if self.cones.is_symmetric() {
+                    // set all scalings to identity (or zero for the zero cone)
+                    self.cones.set_identity_scaling();
+                    // fix up (z,s) so that they are in the cone
+                    self.variables.symmetric_initialization(&mut self.cones);
+                    self.variables.initialize_embedding_variables();
+                }
+            }
+            else{//default warm start directly uses the initial guess, only moving it into the cone as needed
+                self.variables.copy_from(guess);
+                if self.cones.is_symmetric() {
+                    // set all scalings to identity (or zero for the zero cone)
+                    self.cones.set_identity_scaling();
+                    // fix up (z,s) so that they are in the cone
+                    self.variables.symmetric_initialization(&mut self.cones);
+                }
             }
 
         }

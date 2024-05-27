@@ -408,7 +408,7 @@ impl PyDefaultSolver {
         PyDefaultSolution::new_from_internal(&self.inner.solution)
     }
 
-    fn solve_warm(&mut self,xguess: Option<Vec<f64>>,sguess: Option<Vec<f64>>,zguess: Option<Vec<f64>>) -> PyDefaultSolution {
+    fn solve_warm(&mut self,xguess: Option<Vec<f64>>,sguess: Option<Vec<f64>>,zguess: Option<Vec<f64>>,mode: Option<i32>, lambda: Option<f64>) -> PyDefaultSolution {
         if xguess.is_some() && sguess.is_some() && zguess.is_some(){
             let xguess=xguess.unwrap();
             let sguess=sguess.unwrap();
@@ -424,7 +424,7 @@ impl PyDefaultSolver {
             // VectorMath::<T=f64>::copy_from(&guess.x,xguess);
             // VectorMath::<T=f64>::copy_from(&guess.s,sguess);
             // VectorMath::<T=f64>::copy_from(&guess.z,zguess);
-            self.inner.solve_warm(&Some(&guess));
+            self.inner.solve_warm(&Some(&guess),&mode,&lambda);
         }else {
             self.inner.solve();
         }

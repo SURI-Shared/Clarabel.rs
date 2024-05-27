@@ -1,3 +1,5 @@
+use num_traits::one;
+
 use super::*;
 use crate::algebra::*;
 use crate::solver::core::{
@@ -61,6 +63,9 @@ where
     fn calc_mu(&mut self, residuals: &DefaultResiduals<T>, cones: &CompositeCone<T>) -> T {
         let denom = T::from(cones.degree() + 1).unwrap();
         (residuals.dot_sz + self.τ * self.κ) / denom
+    }
+    fn print_quality(&mut self, residuals: &DefaultResiduals<T>,cones: &CompositeCone<T>) {
+        println!("mu={} ||rx||={} ||rz||={}",self.calc_mu(residuals, cones),residuals.rx.norm(),residuals.rz.norm())
     }
 
     fn affine_step_rhs(
@@ -174,6 +179,22 @@ where
         self.x.set(T::zero());
         self.τ = T::one();
         self.κ = T::one();
+    }
+
+    fn skajaa_initialization(&mut self, cones: &CompositeCone<T>, guess: &Self, lambda: &Option<T>) {
+        self.unit_initialization(cones);
+        let lambda=lambda.unwrap_or(T::from(0.99).unwrap());//default of 0.99 lambda follows Skajaa et al 2013
+
+        let oneminuslambda=T::from(1).unwrap()-lambda;
+        self.x.axpby(lambda, &guess.x, oneminuslambda);
+        self.s.axpby(lambda, &guess.s, oneminuslambda);
+        self.z.axpby(lambda, &guess.z, oneminuslambda);
+    }
+
+    fn initialize_embedding_variables(&mut self){
+        self.τ = T::one();
+        let m=self.s.len();
+        self.κ = self.s.dot(&self.z)/T::from(m).unwrap();
     }
 
     fn copy_from(&mut self, src: &Self) {

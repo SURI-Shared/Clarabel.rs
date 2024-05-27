@@ -38,6 +38,14 @@ pub trait Variables<T: FloatT> {
 
     fn calc_mu(&mut self, residuals: &Self::R, cones: &Self::C) -> T;
 
+    /// print out duality gap, primal, dual residuals
+    
+    fn print_quality(&mut self, residuals: &Self::R, cones: &Self::C);
+
+    /// set tau, kappa
+    
+    fn initialize_embedding_variables(&mut self);
+
     /// Compute the KKT RHS for a pure Newton step.
 
     fn affine_step_rhs(&mut self, residuals: &Self::R, variables: &Self, cones: &Self::C);
@@ -75,6 +83,9 @@ pub trait Variables<T: FloatT> {
 
     /// Initialize all conic variables to unit values.
     fn unit_initialization(&mut self, cones: &Self::C);
+
+    /// Initialize variables as convex combination of a guess and the unit initialization
+    fn skajaa_initialization(&mut self, cones: &Self::C, guess: &Self, lambda: &Option<T>);
 
     /// Overwrite values with those from another object
     fn copy_from(&mut self, src: &Self);
