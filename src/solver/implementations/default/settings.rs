@@ -127,6 +127,10 @@ pub struct DefaultSettings<T: FloatT> {
     // preprocessing
     #[builder(default = "true")]
     pub presolve_enable: bool,
+
+    // use a reduced correction at first iteration to improve centrality
+    #[builder(default = "true")]
+    pub reduced_first_correction: bool,
 }
 
 impl<T> Default for DefaultSettings<T>

@@ -316,7 +316,7 @@ where
 
                 // make a reduced Mehrotra correction in the first iteration
                 // to accommodate badly centred starting points
-                let m = if iter > 1 {T::one()} else {α};
+                let m = if iter > 1 || !self.settings.core().reduced_first_correction {T::one()} else {α};
 
                 // calculate the combined step and length
                 // --------------
