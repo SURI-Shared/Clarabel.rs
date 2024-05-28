@@ -59,6 +59,13 @@ pub struct PyDefaultSolution {
     pub r_prim: f64,
     #[pyo3(get)]
     pub r_dual: f64,
+
+    #[pyo3(get)]
+    pub xhist: Vec<Vec<f64>>,
+    #[pyo3(get)]
+    pub shist: Vec<Vec<f64>>,
+    #[pyo3(get)]
+    pub zhist: Vec<Vec<f64>>,
 }
 
 impl PyDefaultSolution {
@@ -79,6 +86,9 @@ impl PyDefaultSolution {
             timings: result.timings.clone(),
             r_prim: result.r_prim,
             r_dual: result.r_dual,
+            xhist: result.xhist.clone(),
+            zhist: result.zhist.clone(),
+            shist: result.shist.clone()
         }
     }
 }

@@ -20,6 +20,12 @@ pub struct DefaultSolution<T> {
     pub iterations: u32,
     pub r_prim: T,
     pub r_dual: T,
+
+    // old iterates
+    pub xhist: Vec<Vec<T>>,
+    pub zhist: Vec<Vec<T>>,
+    pub shist: Vec<Vec<T>>
+
 }
 
 impl<T> DefaultSolution<T>
@@ -43,6 +49,9 @@ where
             iterations: 0,
             r_prim: T::nan(),
             r_dual: T::nan(),
+            xhist: Vec::new(),
+            zhist: Vec::new(),
+            shist: Vec::new()
         }
     }
 }
@@ -120,5 +129,30 @@ where
         self.timings.clone_from( &info.timings);
         self.r_prim = info.res_primal;
         self.r_dual = info.res_dual;
+    }
+    fn save_prev_iterate(&mut self, data: &Self::D, variables: &Self::V, info: &Self::I) {
+        // if we have an infeasible problem, normalize
+        // using κ to get an infeasibility certificate.
+        // Otherwise use τ to get a solution.
+        let scaleinv;
+        if info.status.is_infeasible() {
+            scaleinv = T::recip(variables.κ);
+            self.obj_val = T::nan();
+            self.obj_val_dual = T::nan();
+        } else {
+            scaleinv = T::recip(variables.τ);
+        }
+
+        // also undo the equilibration
+        let d = &data.equilibration.d;
+        let (e, einv) = (&data.equilibration.e, &data.equilibration.einv);
+        let cscale = data.equilibration.c;
+
+        self.xhist.push(variables.x.clone());
+        self.xhist.last_mut().unwrap().hadamard(d).scale(scaleinv);
+        self.zhist.push(variables.z.clone());
+        self.zhist.last_mut().unwrap().hadamard(e).scale(scaleinv/cscale);
+        self.shist.push(variables.s.clone());
+        self.shist.last_mut().unwrap().hadamard(einv).scale(scaleinv);
     }
 }
