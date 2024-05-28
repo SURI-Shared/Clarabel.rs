@@ -224,16 +224,16 @@ where
             if self.cones.allows_primal_dual_scaling() {ScalingStrategy::PrimalDual}
             else {ScalingStrategy::Dual}
         };
-        let mut first=true;
+        // let mut first=true;
         loop {
 
             //update the residuals
             //--------------
             self.residuals.update(&self.variables, &self.data);
-            if first {
-                self.variables.print_quality(&self.residuals,&self.cones);
-                first=false;
-            }
+            // if first {
+            //     self.variables.print_quality(&self.residuals,&self.cones);
+            //     first=false;
+            // }
             //calculate duality gap (scaled)
             //--------------
             μ = self.variables.calc_mu(&self.residuals, &self.cones);
