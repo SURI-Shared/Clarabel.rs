@@ -131,6 +131,10 @@ pub struct DefaultSettings<T: FloatT> {
     // use a reduced correction at first iteration to improve centrality
     #[builder(default = "true")]
     pub reduced_first_correction: bool,
+
+    //should we save all the iterates
+    #[builder(default = "false")]
+    pub save_iterates: bool,
 }
 
 impl<T> Default for DefaultSettings<T>

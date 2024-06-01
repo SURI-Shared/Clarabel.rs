@@ -365,7 +365,9 @@ where
 
             // Copy previous iterate in case the next one is a dud
             self.info.save_prev_iterate(&self.variables,&mut self.prev_vars);
-            self.solution.save_prev_iterate(&self.data,&self.variables,&self.info);
+            if(self.settings.core().save_iterates){
+                self.solution.save_prev_iterate(&self.data,&self.variables,&self.info);
+            }
             self.variables.add_step(&self.step_lhs, α);
 
         } //end loop
