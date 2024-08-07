@@ -268,6 +268,9 @@ pub struct PyDefaultSettings {
 
     #[pyo3(get, set)]
     pub reduced_first_correction: bool,
+
+    #[pyo3(get, set)]
+    pub save_iterates: bool,
 }
 
 #[pymethods]
@@ -338,6 +341,7 @@ impl PyDefaultSettings {
             iterative_refinement_stop_ratio: set.iterative_refinement_stop_ratio,
             presolve_enable: set.presolve_enable,
             reduced_first_correction: set.reduced_first_correction,
+            save_iterates: set.save_iterates,
         }
     }
 
@@ -383,6 +387,7 @@ impl PyDefaultSettings {
             iterative_refinement_stop_ratio: self.iterative_refinement_stop_ratio,
             presolve_enable: self.presolve_enable,
             reduced_first_correction: self.reduced_first_correction,
+            save_iterates: self.save_iterates,
         }
     }
 }
