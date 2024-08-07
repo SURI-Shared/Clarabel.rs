@@ -63,6 +63,19 @@ where
     type D = DefaultProblemData<T>;
     type V = DefaultVariables<T>;
     type I = DefaultInfo<T>;
+    fn reset(&mut self){
+        self.status=SolverStatus::Unsolved;
+        self.obj_val=T::nan();
+        self.obj_val_dual=T::nan();
+        self.solve_time=0f64;
+        self.timings.clear();
+        self.iterations=0;
+        self.r_prim=T::nan();
+        self.r_dual=T::nan();
+        self.xhist.clear();
+        self.zhist.clear();
+        self.shist.clear();
+    }
 
     fn finalize(
         &mut self,

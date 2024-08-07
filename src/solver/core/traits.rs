@@ -233,6 +233,7 @@ pub trait Solution<T: FloatT> {
     /// Compute solution from the Variables at solver termination
     fn finalize(&mut self, data: &Self::D, variables: &Self::V, info: &Self::I);
     fn save_prev_iterate(&mut self, data: &Self::D, variables: &Self::V, info: &Self::I);
+    fn reset(&mut self);
 }
 
 /// Settings for a conic optimization problem.

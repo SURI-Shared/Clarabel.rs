@@ -206,6 +206,7 @@ where
         }}
 
         self.info.reset(&mut timers);
+        self.solution.reset();
 
         timeit! {timers => "solve"; {
 
