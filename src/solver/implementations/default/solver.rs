@@ -84,6 +84,13 @@ where
 
         output
     }
+    pub fn clear_setup_timers(&mut self){
+        let mut timers=self.timers.take().unwrap();
+        timers.reset_timer("setup");
+        timers.reset_timer("equilibration");
+        timers.reset_timer("kktinit");
+        self.timers.replace(timers);
+    }
 }
 
 fn _check_dimensions<T: FloatT>(
