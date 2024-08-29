@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 use super::DefaultSolver;
 use crate::algebra::*;
+use crate::timers::*;
+
 use core::iter::Zip;
 use core::slice::Iter;
 use thiserror::Error;
@@ -70,11 +72,18 @@ where
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
-        self.check_presolve_disabled()?;
-        let d = &self.data.equilibration.d;
-        data.update_matrix(&mut self.data.P, d, d)?;
-        // overwrite KKT data
-        self.kktsystem.update_P(&self.data.P);
+        let mut timers = self.timers.take().unwrap();
+        timeit! {timers => "setup"; {
+
+            self.check_presolve_disabled()?;
+            let d = &self.data.equilibration.d;
+            data.update_matrix(&mut self.data.P, d, d)?;
+            // overwrite KKT data
+            timeit!{timers => "kktinit"; {
+                self.kktsystem.update_P(&self.data.P);
+            }}
+        }}
+        self.timers.replace(timers);
         Ok(())
     }
 
@@ -92,12 +101,19 @@ where
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
-        self.check_presolve_disabled()?;
-        let d = &self.data.equilibration.d;
-        let e = &self.data.equilibration.e;
-        data.update_matrix(&mut self.data.A, e, d)?;
-        // overwrite KKT data
-        self.kktsystem.update_A(&self.data.A);
+        let mut timers = self.timers.take().unwrap();
+        timeit! {timers => "setup"; {
+
+            self.check_presolve_disabled()?;
+            let d = &self.data.equilibration.d;
+            let e = &self.data.equilibration.e;
+            data.update_matrix(&mut self.data.A, e, d)?;
+            // overwrite KKT data
+            timeit!{timers => "kktinit"; {
+                self.kktsystem.update_A(&self.data.A);
+            }}
+        }}
+        self.timers.replace(timers);
         Ok(())
     }
 
@@ -106,13 +122,17 @@ where
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
-        self.check_presolve_disabled()?;
-        let d = &self.data.equilibration.d;
-        data.update_vector(&mut self.data.q, d)?;
+        let mut timers = self.timers.take().unwrap();
+        timeit! {timers => "setup"; {
+            self.check_presolve_disabled()?;
+            let d = &self.data.equilibration.d;
+            data.update_vector(&mut self.data.q, d)?;
 
-        // flush unscaled norm. Will be recalculated during solve
-        self.data.clear_normq();
+            // flush unscaled norm. Will be recalculated during solve
+            self.data.clear_normq();
+        }}
 
+        self.timers.replace(timers);
         Ok(())
     }
 
@@ -121,13 +141,16 @@ where
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
-        self.check_presolve_disabled()?;
-        let e = &self.data.equilibration.e;
-        data.update_vector(&mut self.data.b, e)?;
+        let mut timers = self.timers.take().unwrap();
+        timeit! {timers => "setup"; {
+            self.check_presolve_disabled()?;
+            let e = &self.data.equilibration.e;
+            data.update_vector(&mut self.data.b, e)?;
 
-        // flush unscaled norm. Will be recalculated during solve
-        self.data.clear_normb();
-
+            // flush unscaled norm. Will be recalculated during solve
+            self.data.clear_normb();
+        }}
+        self.timers.replace(timers);
         Ok(())
     }
 
