@@ -1,8 +1,5 @@
 use super::*;
-use crate::{
-    algebra::*,
-    solver::{core::ScalingStrategy, CoreSettings},
-};
+use crate::algebra::*;
 use itertools::izip;
 
 // -------------------------------------
@@ -224,8 +221,6 @@ where
             // For sparse form, we are returning here the diagonal D block
             // from the sparse representation of W^TW, but not the
             // extra two entries at the bottom right of the block.
-            // The ConicVector for s and z (and its views) don't
-            // know anything about the 2 extra sparsifying entries
             Hsblock.fill(self.η * self.η);
             Hsblock[0] *= sparse_data.d;
         } else {
@@ -414,7 +409,7 @@ where
     T: FloatT,
 {
     let x0 = z[0] + α * dz[0];
-    let x1_sq = <[T] as VectorMath>::dot_shifted(&z[1..], &z[1..], &dz[1..], &dz[1..], α);
+    let x1_sq = <[T] as VectorMath<T>>::dot_shifted(&z[1..], &z[1..], &dz[1..], &dz[1..], α);
 
     x0 * x0 - x1_sq
 }

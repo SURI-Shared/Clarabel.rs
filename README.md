@@ -10,16 +10,16 @@ Interior Point Conic Optimization for Rust and Python
 <p align="center">
    <a href="https://github.com/oxfordcontrol/Clarabel.rs/actions"><img src="https://github.com/oxfordcontrol/Clarabel.rs/workflows/ci/badge.svg?branch=main"></a>
   <a href="https://codecov.io/gh/oxfordcontrol/Clarabel.rs"><img src="https://codecov.io/gh/oxfordcontrol/Clarabel.rs/branch/main/graph/badge.svg"></a>
-  <a href="https://oxfordcontrol.github.io/ClarabelDocs/stable"><img src="https://img.shields.io/badge/Documentation-stable-purple.svg"></a>
+  <a href="https://clarabel.org"><img src="https://img.shields.io/badge/Documentation-stable-purple.svg"></a>
   <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
-  <a href="https://github.com/oxfordcontrol/Clarabel.rs/releases"><img src="https://img.shields.io/badge/Release-v0.7.1-blue.svg"></a>
+  <a href="https://github.com/oxfordcontrol/Clarabel.rs/releases"><img src="https://img.shields.io/badge/Release-v0.9.0-blue.svg"></a>
 </p>
 
 <p align="center">
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#license-">License</a> •
-  <a href="https://oxfordcontrol.github.io/ClarabelDocs/stable">Documentation</a>
+  <a href="https://clarabel.org">Documentation</a>
 </p>
 
 __Clarabel.rs__ is a Rust implementation of an interior point numerical solver for convex optimization problems using a novel homogeneous embedding.  Clarabel.rs solves the following problem:
@@ -42,7 +42,7 @@ $A \in \mathbb{R}^{m \times n}$, and
 $b \in \mathbb{R}^m$.
 The convex set $\mathcal{K}$ is a composition of convex cones.
 
-__For more information see the Clarabel Documentation ([stable](https://oxfordcontrol.github.io/ClarabelDocs/stable) |  [dev](https://oxfordcontrol.github.io/ClarabelDocs/dev)).__
+__For more information see the Clarabel Documentation ([stable](https://clarabel.org) |  [dev](https://clarabel.org/dev)).__
 
 Clarabel is also available in a Julia implementation.  See [here](https://github.com/oxfordcontrol/Clarabel.jl).
  
@@ -69,6 +69,18 @@ pip install clarabel
 ```
 
 To install the Python interface from source, see the [Python Installation Documentation](https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/).
+
+## Citing
+```
+@misc{Clarabel_2024,
+      title={Clarabel: An interior-point solver for conic programs with quadratic objectives}, 
+      author={Paul J. Goulart and Yuwen Chen},
+      year={2024},
+      eprint={2405.12762},
+      archivePrefix={arXiv},
+      primaryClass={math.OC}
+}
+```
 
 ## License 🔍
 This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details.

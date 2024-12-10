@@ -1,5 +1,8 @@
 #![allow(non_snake_case)]
 
+#[cfg(feature = "faer-sparse")]
+use super::ldlsolvers::faer_ldl::*;
+
 use super::ldlsolvers::qdldl::*;
 use super::*;
 use crate::solver::core::kktsolvers::KKTSolver;
@@ -153,7 +156,7 @@ where
         lhsz: Option<&mut [T]>,
         settings: &CoreSettings<T>,
     ) -> bool {
-        self.ldlsolver.solve(&mut self.x, &self.b);
+        self.ldlsolver.solve(&self.KKT, &mut self.x, &self.b);
 
         let is_success = {
             if settings.iterative_refinement_enable {
@@ -274,7 +277,7 @@ where
             let lastnorme = norme;
 
             //make a refinement
-            self.ldlsolver.solve(dx, e);
+            self.ldlsolver.solve(K, dx, e);
 
             //prospective solution is x + dx.  Use dx space to
             // hold it for a check before applying to x
@@ -331,7 +334,7 @@ where
     //The Julia version implements this using a module scope dictionary,
     //which allows users to register custom solver types.  That seems much
     //harder to do in Rust since a static mutable Hashmap is unsafe.  For
-    //now, we use a fixed lookup table, so any new suppored solver types
+    //now, we use a fixed lookup table, so any new supported solver types
     //supported must be added here.   It should be possible to allow a
     //"custom" LDL solver in the settings in well, whose constructor and
     //and matrix shape could then be registered as some (probably hidden)
@@ -345,8 +348,10 @@ where
             kktshape = QDLDLDirectLDLSolver::<T>::required_matrix_shape();
             ldlptr = |M, D, S| Box::new(QDLDLDirectLDLSolver::<T>::new(M, D, S));
         }
-        "custom" => {
-            unimplemented!();
+        #[cfg(feature = "faer-sparse")]
+        "faer" => {
+            kktshape = FaerDirectLDLSolver::<T>::required_matrix_shape();
+            ldlptr = |M, D, S| Box::new(FaerDirectLDLSolver::<T>::new(M, D, S));
         }
         _ => {
             panic! {"Unrecognized LDL solver type"};

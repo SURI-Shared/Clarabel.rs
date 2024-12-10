@@ -1,5 +1,4 @@
 use super::*;
-use crate::algebra::{CscMatrix, FloatT};
 extern crate amd;
 
 #[cfg(test)]
@@ -55,10 +54,10 @@ fn test_permute() {
     let mut x = vec![0.; 4];
     let mut y = vec![0.; 4];
 
-    _permute(&mut x, &b, &perm);
+    permute(&mut x, &b, &perm);
     assert_eq!(x, vec![4., 1., 3., 2.]);
 
-    _ipermute(&mut y, &x, &perm);
+    ipermute(&mut y, &x, &perm);
     assert_eq!(y, b);
 }
 
@@ -70,28 +69,28 @@ fn test_solve_from_factors() {
     //[2.0  1.0    ⋅    ⋅ ]
     //[ ⋅   7.0  -3.0   ⋅ ]
 
-    let Lp = vec![0, 2, 4, 5, 5];
-    let Li = vec![1, 2, 2, 3, 3];
-    let Lx = vec![1., 2., 1., 7., -3.];
-    let _d = vec![4., -1., -2., 1.];
+    let Lp = [0, 2, 4, 5, 5];
+    let Li = [1, 2, 2, 3, 3];
+    let Lx = [1., 2., 1., 7., -3.];
+    let _d = [4., -1., -2., 1.];
     let dinv = [0.25, -1.0, -0.5, 1.0];
-    let x = vec![-3., 2., 1., 4.];
+    let x = [-3., 2., 1., 4.];
 
     //(I+L)x = b.  Back solve on b in place.
-    let mut b = vec![-3., -1., -3., 15.];
+    let mut b = [-3., -1., -3., 15.];
     _lsolve_unsafe(&Lp, &Li, &Lx, &mut b);
     assert_eq!(b, x);
 
-    let mut b = vec![-3., -1., -3., 15.];
+    let mut b = [-3., -1., -3., 15.];
     _lsolve_safe(&Lp, &Li, &Lx, &mut b);
     assert_eq!(b, x);
 
     //(I+L')x = b.  Back solve on b in place.
-    let mut b = vec![1., 31., -11., 4.];
+    let mut b = [1., 31., -11., 4.];
     _ltsolve_unsafe(&Lp, &Li, &Lx, &mut b);
     assert_eq!(b, x);
 
-    let mut b = vec![1., 31., -11., 4.];
+    let mut b = [1., 31., -11., 4.];
     _ltsolve_safe(&Lp, &Li, &Lx, &mut b);
     assert_eq!(b, x);
 
@@ -125,7 +124,7 @@ fn test_etree() {
 #[test]
 fn test_amd() {
     let A = test_matrix_4x4();
-    let (perm, iperm) = _get_amd_ordering(&A, 1.5);
+    let (perm, iperm) = get_amd_ordering(&A, 1.5);
     assert_eq!(perm, [3, 0, 1, 2]);
     assert_eq!(iperm, [1, 2, 3, 0]);
 }
@@ -135,7 +134,7 @@ fn test_permute_symmetric() {
     //no permutation at all
     let A = test_matrix_4x4();
     let iperm: Vec<usize> = vec![0, 1, 2, 3];
-    let (P, AtoPAPt) = _permute_symmetric(&A, &iperm);
+    let (P, AtoPAPt) = permute_symmetric(&A, &iperm);
 
     assert_eq!(&A.colptr, &P.colptr);
     assert_eq!(&A.rowval, &P.rowval);
@@ -158,7 +157,7 @@ fn test_permute_symmetric() {
 
     let perm: Vec<usize> = vec![2, 3, 0, 1];
     let iperm = _invperm(&perm).unwrap();
-    let (P, _) = _permute_symmetric(&A, &iperm);
+    let (P, _) = permute_symmetric(&A, &iperm);
 
     assert_eq!(&P.colptr, &vec![0, 1, 3, 5, 8]);
     assert_eq!(&P.rowval, &vec![0, 0, 1, 2, 0, 2, 3, 0]);

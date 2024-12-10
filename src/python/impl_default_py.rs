@@ -11,10 +11,12 @@ use crate::solver::{
         IPSolver, SolverStatus,
     },
     implementations::default::*,
+    SolverJSONReadWrite,
 };
 use crate::algebra::VectorMath;
 use num_derive::ToPrimitive;
 use num_traits::ToPrimitive;
+use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use std::fmt::Write;
 
@@ -271,6 +273,15 @@ pub struct PyDefaultSettings {
 
     #[pyo3(get, set)]
     pub save_iterates: bool,
+    //chordal decomposition (python must be built with "sdp" feature)
+    #[pyo3(get, set)]
+    pub chordal_decomposition_enable: bool,
+    #[pyo3(get, set)]
+    pub chordal_decomposition_merge_method: String,
+    #[pyo3(get, set)]
+    pub chordal_decomposition_compact: bool,
+    #[pyo3(get, set)]
+    pub chordal_decomposition_complete_dual: bool,
 }
 
 #[pymethods]
@@ -342,6 +353,10 @@ impl PyDefaultSettings {
             presolve_enable: set.presolve_enable,
             reduced_first_correction: set.reduced_first_correction,
             save_iterates: set.save_iterates,
+            chordal_decomposition_enable: set.chordal_decomposition_enable,
+            chordal_decomposition_merge_method: set.chordal_decomposition_merge_method.clone(),
+            chordal_decomposition_compact: set.chordal_decomposition_compact,
+            chordal_decomposition_complete_dual: set.chordal_decomposition_complete_dual,
         }
     }
 
@@ -388,6 +403,10 @@ impl PyDefaultSettings {
             presolve_enable: self.presolve_enable,
             reduced_first_correction: self.reduced_first_correction,
             save_iterates: self.save_iterates,
+            chordal_decomposition_enable: self.chordal_decomposition_enable,
+            chordal_decomposition_merge_method: self.chordal_decomposition_merge_method.clone(),
+            chordal_decomposition_compact: self.chordal_decomposition_compact,
+            chordal_decomposition_complete_dual: self.chordal_decomposition_complete_dual,
         }
     }
 }
@@ -411,12 +430,20 @@ impl PyDefaultSolver {
         b: Vec<f64>,
         cones: Vec<PySupportedCone>,
         settings: PyDefaultSettings,
-    ) -> Self {
+    ) -> PyResult<Self> {
         let cones = _py_to_native_cones(cones);
         let settings = settings.to_internal();
-        let solver = DefaultSolver::new(&P, &q, &A, &b, &cones, settings);
 
-        Self { inner: solver }
+        //manually validate settings from Python side
+        match settings.validate() {
+            Ok(_) => (),
+            Err(e) => {
+                return Err(PyException::new_err(format!("Invalid settings: {}", e)));
+            }
+        }
+
+        let solver = DefaultSolver::new(&P, &q, &A, &b, &cones, settings);
+        Ok(Self { inner: solver })
     }
 
     fn update_b(&mut self,b:Vec<f64>)->bool{
@@ -476,4 +503,17 @@ impl PyDefaultSolver {
             None => println!("no timers enabled"),
         };
     }
+
+    fn write_to_file(&self, filename: &str) -> PyResult<()> {
+        let mut file = std::fs::File::create(filename)?;
+        self.inner.write_to_file(&mut file)?;
+        Ok(())
+    }
+}
+
+#[pyfunction(name = "read_from_file")]
+pub fn read_from_file_py(filename: &str) -> PyResult<PyDefaultSolver> {
+    let mut file = std::fs::File::open(filename)?;
+    let solver = DefaultSolver::<f64>::read_from_file(&mut file)?;
+    Ok(PyDefaultSolver { inner: solver })
 }
