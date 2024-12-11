@@ -14,6 +14,7 @@ use crate::solver::{
     SolverJSONReadWrite,
 };
 use crate::algebra::VectorMath;
+use crate::algebra::CscMatrix;
 use num_derive::ToPrimitive;
 use num_traits::ToPrimitive;
 use pyo3::exceptions::PyException;
@@ -448,6 +449,18 @@ impl PyDefaultSolver {
 
     fn update_b(&mut self,b:Vec<f64>)->bool{
         self.inner.update_b(&b).is_ok()
+    }
+
+    fn update_A(&mut self,A:PyCscMatrix)->bool{
+        self.inner.update_A(&CscMatrix::from(A)).is_ok()
+    }
+
+    fn update_P(&mut self,P:PyCscMatrix)->bool{
+        self.inner.update_P(&CscMatrix::from(P)).is_ok()
+    }
+    
+    fn update_q(&mut self,q:Vec<f64>)->bool{
+        self.inner.update_q(&q).is_ok()
     }
 
     fn solve(&mut self) -> PyDefaultSolution {
