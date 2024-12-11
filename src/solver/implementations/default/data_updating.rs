@@ -5,6 +5,7 @@ use crate::timers::*;
 
 use core::iter::Zip;
 use core::slice::Iter;
+use std::result;
 use thiserror::Error;
 
 /// Error type returned by user data update utilities, e.g. [`check_format`](crate::algebra::CscMatrix::check_format) utility.
@@ -72,18 +73,26 @@ where
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
+        let result;
         let mut timers = self.timers.take().unwrap();
         timeit! {timers => "setup"; {
-
-            self.check_presolve_disabled()?;
-            let d = &self.data.equilibration.d;
-            data.update_matrix(&mut self.data.P, d, d)?;
-            // overwrite KKT data
-            timeit!{timers => "kktinit"; {
-                self.kktsystem.update_P(&self.data.P);
-            }}
+            result=self._update_P(data, &mut timers);
         }}
         self.timers.replace(timers);
+        result
+    }
+    fn _update_P<Data: MatrixProblemDataUpdate<T>>(
+        &mut self,
+        data: &Data,
+        timers: &mut Timers,
+    ) -> Result<(), DataUpdateError> {
+        self.check_presolve_disabled()?;
+        let d = &self.data.equilibration.d;
+        data.update_matrix(&mut self.data.P, d, d)?;
+        // overwrite KKT data
+        timeit!{timers => "kktinit"; {
+            self.kktsystem.update_P(&self.data.P);
+        }}
         Ok(())
     }
 
@@ -101,19 +110,28 @@ where
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
+        let result;
         let mut timers = self.timers.take().unwrap();
         timeit! {timers => "setup"; {
-
-            self.check_presolve_disabled()?;
-            let d = &self.data.equilibration.d;
-            let e = &self.data.equilibration.e;
-            data.update_matrix(&mut self.data.A, e, d)?;
-            // overwrite KKT data
-            timeit!{timers => "kktinit"; {
-                self.kktsystem.update_A(&self.data.A);
-            }}
+            result=self._update_A(data, &mut timers);
         }}
         self.timers.replace(timers);
+        result
+    }
+
+    fn _update_A<Data: MatrixProblemDataUpdate<T>>(
+        &mut self,
+        data: &Data,
+        timers: &mut Timers,
+    ) -> Result<(), DataUpdateError> {
+        self.check_presolve_disabled()?;
+        let d = &self.data.equilibration.d;
+        let e = &self.data.equilibration.e;
+        data.update_matrix(&mut self.data.A, e, d)?;
+        // overwrite KKT data
+        timeit!{timers => "kktinit"; {
+            self.kktsystem.update_A(&self.data.A);
+        }}
         Ok(())
     }
 
@@ -122,35 +140,54 @@ where
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
+        let result;
         let mut timers = self.timers.take().unwrap();
         timeit! {timers => "setup"; {
-            self.check_presolve_disabled()?;
-            let d = &self.data.equilibration.d;
-            data.update_vector(&mut self.data.q, d)?;
-
-            // flush unscaled norm. Will be recalculated during solve
-            self.data.clear_normq();
+            result=self._update_q(data);
         }}
 
         self.timers.replace(timers);
+        result
+    }
+
+    fn _update_q<Data: VectorProblemDataUpdate<T>>(
+        &mut self,
+        data: &Data,
+    ) -> Result<(), DataUpdateError> {
+        self.check_presolve_disabled()?;
+        let d = &self.data.equilibration.d;
+        data.update_vector(&mut self.data.q, d)?;
+
+        // flush unscaled norm. Will be recalculated during solve
+        self.data.clear_normq();
         Ok(())
     }
+
 
     /// Overwrites the `b` vector data in an existing solver object.  No action is taken if the input is empty.
     pub fn update_b<Data: VectorProblemDataUpdate<T>>(
         &mut self,
         data: &Data,
     ) -> Result<(), DataUpdateError> {
+        let result;
         let mut timers = self.timers.take().unwrap();
         timeit! {timers => "setup"; {
-            self.check_presolve_disabled()?;
-            let e = &self.data.equilibration.e;
-            data.update_vector(&mut self.data.b, e)?;
-
-            // flush unscaled norm. Will be recalculated during solve
-            self.data.clear_normb();
+            result=self._update_b(data);
         }}
         self.timers.replace(timers);
+        result
+    }
+
+    fn _update_b<Data: VectorProblemDataUpdate<T>>(
+        &mut self,
+        data: &Data,
+    ) -> Result<(), DataUpdateError> {
+        self.check_presolve_disabled()?;
+        let e = &self.data.equilibration.e;
+        data.update_vector(&mut self.data.b, e)?;
+
+        // flush unscaled norm. Will be recalculated during solve
+        self.data.clear_normb();
         Ok(())
     }
 
