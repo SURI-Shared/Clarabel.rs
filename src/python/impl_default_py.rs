@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use super::*;
 use crate::solver::{
     core::{
-        traits::{InfoPrint, Settings},
+        traits::{InfoPrint, Settings,ProblemData},
         IPSolver, SolverStatus,
     },
     implementations::default::*,
@@ -458,9 +458,13 @@ impl PyDefaultSolver {
     fn update_P(&mut self,P:PyCscMatrix)->bool{
         self.inner.update_P(&CscMatrix::from(P)).is_ok()
     }
-    
+
     fn update_q(&mut self,q:Vec<f64>)->bool{
         self.inner.update_q(&q).is_ok()
+    }
+
+    fn equilibrate(&mut self){
+        self.inner.data.equilibrate(&self.inner.cones,&self.inner.settings);
     }
 
     fn solve(&mut self) -> PyDefaultSolution {
